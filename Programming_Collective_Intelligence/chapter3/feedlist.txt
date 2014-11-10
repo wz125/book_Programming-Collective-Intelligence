@@ -1,0 +1,4 @@
+http://www.microsoft.com/china/msdn/rss.xml
+http://www.pcpchina.com/klip/pcpnews_software.xml
+http://www.pcpchina.com/klip/pcpnews_general.xml
+http://www.microsoft.com/china/technet/rss.xml
