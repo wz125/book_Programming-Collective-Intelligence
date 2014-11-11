@@ -80,3 +80,4 @@ col=3 value=23 gain=0.0 best_gain=0.0 False
 +best_gain=0.0 best_criteria=None 所有的都正确，到达叶节点
 +decisionnode:{'Premium': 3}  
 ```
+![treeview]('./treeview.jpg')
