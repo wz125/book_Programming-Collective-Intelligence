@@ -76,6 +76,8 @@ def entropy(rows):
    for r in results.keys():
       p=float(results[r])/len(rows)
       ent=ent-p*log2(p)
+      #print '++++ p=%s entropy=%s' % (p*log2(p),ent)
+   #print '++results=%s ent=%s' % (results,ent)
    return ent
 
 
@@ -107,7 +109,7 @@ def getdepth(tree):
 
 from PIL import Image,ImageDraw
 
-def drawtree(tree,jpeg='tree.jpg'):
+def drawtree(tree,jpeg='tree.png'):
   w=getwidth(tree)*100
   h=getdepth(tree)*100+120
 
@@ -115,7 +117,7 @@ def drawtree(tree,jpeg='tree.jpg'):
   draw=ImageDraw.Draw(img)
 
   drawnode(draw,tree,w/2,20)
-  img.save(jpeg,'JPEG')
+  img.save(jpeg,'PNG')
   
 def drawnode(draw,tree,x,y):
   if tree.results==None:
@@ -215,14 +217,18 @@ def variance(rows):
 def buildtree(rows,scoref=entropy):
   if len(rows)==0: return decisionnode()
   current_score=scoref(rows)
-
+  print '>>current_score=%s' % (current_score)
+  for r in rows:
+    print '>>row=%s' % r
   # Set up some variables to track the best criteria
   best_gain=0.0
   best_criteria=None
   best_sets=None
   
   column_count=len(rows[0])-1
+  # 
   for col in range(0,column_count):
+    print '+col=%s' % col
     # Generate the list of different values in
     # this column
     column_values={}
@@ -236,10 +242,12 @@ def buildtree(rows,scoref=entropy):
       # Information gain
       p=float(len(set1))/len(rows)
       gain=current_score-p*scoref(set1)-(1-p)*scoref(set2)
+      print 'col=%s value=%s gain=%s best_gain=%s %s' % (col,value,gain,best_gain,gain>best_gain)
       if gain>best_gain and len(set1)>0 and len(set2)>0:
         best_gain=gain
         best_criteria=(col,value)
         best_sets=(set1,set2)
+  print '+best_gain=%s best_criteria=%s' % (best_gain,best_criteria)
   # Create the sub branches   
   if best_gain>0:
     trueBranch=buildtree(best_sets[0])
@@ -247,4 +255,6 @@ def buildtree(rows,scoref=entropy):
     return decisionnode(col=best_criteria[0],value=best_criteria[1],
                         tb=trueBranch,fb=falseBranch)
   else:
-    return decisionnode(results=uniquecounts(rows))
+    tmp=uniquecounts(rows)
+    print '+decisionnode:%s' % tmp
+    return decisionnode(results=tmp)

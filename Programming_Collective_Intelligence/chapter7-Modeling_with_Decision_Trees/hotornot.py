@@ -1,14 +1,14 @@
 import urllib2
 import xml.dom.minidom
 
-api_key='YOUR KEY HERE'
+api_key='479NUNJHETN'
 
 def getrandomratings(c):
   # Construct URL for getRandomProfile
   url="http://services.hotornot.com/rest/?app_key=%s" % api_key
   url+="&method=Rate.getRandomProfile&retrieve_num=%d" % c
   url+="&get_rate_info=true&meet_users_only=true"
-  
+  print url 
   f1=urllib2.urlopen(url).read()
 
   doc=xml.dom.minidom.parseString(f1)
