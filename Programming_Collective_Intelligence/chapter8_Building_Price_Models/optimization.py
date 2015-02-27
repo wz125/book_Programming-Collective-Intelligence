@@ -13,14 +13,13 @@ destination='LGA'
 
 flights={}
 # 
-"""
 for line in file('schedule.txt'):
   origin,dest,depart,arrive,price=line.strip().split(',')
   flights.setdefault((origin,dest),[])
 
   # Add details to the list of possible flights
   flights[(origin,dest)].append((depart,arrive,int(price)))
-"""
+
 def getminutes(t):
   x=time.strptime(t,'%H:%M')
   return x[3]*60+x[4]
@@ -39,7 +38,9 @@ def schedulecost(sol):
   totalprice=0
   latestarrival=0
   earliestdep=24*60
-
+  #print sol
+  if sol is None:  #w add by wz
+    return 99999;
   for d in range(len(sol)/2):
     # Get the inbound and outbound flights
     origin=people[d][1]
@@ -86,6 +87,35 @@ def randomoptimize(domain,costf):
       bestr=r 
   return r
 
+def hillclimb(domain,costf):
+  # Create a random solution
+  sol=[random.randint(domain[i][0],domain[i][1])
+      for i in range(len(domain))]
+  # Main loop
+  while 1:
+    # Create list of neighboring solutions
+    neighbors=[]
+    
+    for j in range(len(domain)):
+      # One away in each direction
+      if sol[j]>domain[j][0]:
+        neighbors.append(sol[0:j]+[sol[j]+1]+sol[j+1:])
+      if sol[j]<domain[j][1]:
+        neighbors.append(sol[0:j]+[sol[j]-1]+sol[j+1:])
+
+    # See what the best solution amongst the neighbors is
+    current=costf(sol)
+    best=current
+    for j in range(len(neighbors)):
+      cost=costf(neighbors[j])
+      if cost<best:
+        best=cost
+        sol=neighbors[j]
+
+    # If there's no improvement, then we've reached the top
+    if best==current:
+      break
+  return sol
 
 def annealingoptimize(domain,costf,T=10000.0,cool=0.95,step=1):
   # Initialize the values randomly
@@ -110,9 +140,6 @@ def annealingoptimize(domain,costf,T=10000.0,cool=0.95,step=1):
     eb=costf(vecb)
     p=pow(math.e,(-eb-ea)/T)
 
-    print vec,ea
-
-
     # Is it better, or does it make the probability
     # cutoff?
     if (eb<ea or random.random()<p):
@@ -122,47 +149,55 @@ def annealingoptimize(domain,costf,T=10000.0,cool=0.95,step=1):
     T=T*cool
   return vec
 
-def swarmoptimize(domain,costf,popsize=20,lrate=0.1,maxv=2.0,iters=50):
-  # Initialize individuals
-  # current solutions
-  x=[]
-
-  # best solutions
-  p=[]
-
-  # velocities
-  v=[]
+def geneticoptimize(domain,costf,popsize=50,step=1,
+                    mutprob=0.2,elite=0.2,maxiter=100):
+  # Mutation Operation
+  def mutate(vec):
+    i=random.randint(0,len(domain)-1)
+    if random.random()<0.5 and vec[i]>domain[i][0]:
+      return vec[0:i]+[vec[i]-step]+vec[i+1:] 
+    elif vec[i]<domain[i][1]:
+      return vec[0:i]+[vec[i]+step]+vec[i+1:]
   
-  for i in range(0,popsize):
-    vec=[float(random.randint(domain[i][0],domain[i][1])) 
+  # Crossover Operation
+  def crossover(r1,r2):
+    i=random.randint(1,len(domain)-2)
+    return r1[0:i]+r2[i:]
+
+  # Build the initial population
+  pop=[]
+  for i in range(popsize):
+    vec=[random.randint(domain[i][0],domain[i][1]) 
          for i in range(len(domain))]
-    x.append(vec)
-    p.append(vec[:])
-    v.append([0.0 for i in vec])
+    pop.append(vec)
   
+  # How many winners from each generation?
+  topelite=int(elite*popsize)
   
-  for ml in range(0,iters):
-    for i in range(0,popsize):
-      # Best solution for this particle
-      if costf(x[i])<costf(p[i]):
-        p[i]=x[i][:]
-      g=i
+  # Main loop 
+  for i in range(maxiter):
+    scores=[(costf(v),v) for v in pop]
+    scores.sort()
+    ranked=[v for (s,v) in scores]
+    
+    # Start with the pure winners
+    pop=ranked[0:topelite]
+    
+    # Add mutated and bred forms of the winners
+    while len(pop)<popsize:
+      if random.random()<mutprob:
 
-      # Best solution for any particle
-      for j in range(0,popsize):
-        if costf(p[j])<costf(p[g]): g=j
-      for d in range(len(x[i])):
-        # Update the velocity of this particle
-        v[i][d]+=lrate*(p[i][d]-x[i][d])+lrate*(p[g][d]-x[i][d])
-
-        # constrain velocity to a maximum
-        if v[i][d]>maxv: v[i][d]=maxv
-        elif v[i][d]<-maxv: v[i][d]=-maxv
-
-        # constrain bounds of solutions
-        x[i][d]+=v[i][d]
-        if x[i][d]<domain[d][0]: x[i][d]=domain[d][0]
-        elif x[i][d]>domain[d][1]: x[i][d]=domain[d][1]
-
-    print p[g],costf(p[g])
-  return p[g]
+        # Mutation
+        c=random.randint(0,topelite)
+        pop.append(mutate(ranked[c]))
+      else:
+      
+        # Crossover
+        c1=random.randint(0,topelite)
+        c2=random.randint(0,topelite)
+        pop.append(crossover(ranked[c1],ranked[c2]))
+    
+    # Print current best score
+    print scores[0][0]
+    
+  return scores[0][1]

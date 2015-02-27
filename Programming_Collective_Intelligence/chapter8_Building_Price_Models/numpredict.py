@@ -139,7 +139,10 @@ def wineset2():
 
 def rescale(data,scale):
   scaleddata=[]
+  #print scale
   for row in data:
+    #for i in range(len(scale)):
+    #  print i,row,scale[i],row['input'][i]
     scaled=[scale[i]*row['input'][i] for i in range(len(scale))]
     scaleddata.append({'input':scaled,'result':row['result']})
   return scaleddata
