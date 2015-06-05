@@ -1,0 +1,18 @@
+
+==Advanced Classification:Kernel Methods and SVMs
+
+
+===Decision Tree Classifier 决策树分类
+  在不了解数据详情下，使用往往达不到效果
+  数据散布图有助于理解真实数据
+  存在多个数值型输入，且彼此存在关系时，决策树不是好的选择
+
+===Basic Linear Classification 基本先行分类
+  计算每个分类个点的平均值，然后通过新增点的距离判断分类
+  通过向量点积来计算距离，通过结果正负判断分类
+
+
+===Understanding Kernel Methods 理解核方法
+  将数据映射到高维或者幂等处理，相对线性容易划分
+===The Kernel Trick
+  任何使用点积的分类器，可采用核技法的技法
